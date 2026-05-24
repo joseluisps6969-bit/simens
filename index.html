@@ -1,29 +1,98 @@
-<!-- CALCULADORAS -->
-<div class="w-full max-w-3xl mt-10 grid md:grid-cols-2 gap-6">
-    
-    <!-- Calibre Mínimo -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-        <h2 class="text-xl font-bold mb-4 text-blue-400">🧮 Calibre Mínimo</h2>
-        <div class="flex flex-col gap-3">
-            <input id="input-amperes" type="number" placeholder="Amperes" class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-white">
-            <select id="select-temp" class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-white">
-                <option value="60">60°C</option>
-                <option value="75">75°C</option>
-                <option value="90">90°C</option>
-            </select>
-            <button onclick="calcularCalibre()" class="bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold">Calcular</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ NOM Master Pro ⚡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background:#0b111e; color:white; font-family:sans-serif; }</style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="w-full max-w-3xl">
+        
+        <!-- HEADER -->
+        <h1 class="text-3xl font-black text-blue-400 text-center my-6">⚡ NOM Master Pro ⚡</h1>
+
+        <!-- SECCION JUEGO -->
+        <div id="menu-container" class="text-center">
+            <h2 class="text-xl font-bold text-slate-400 mb-4">Modo Simulador</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="startSupervivencia('310','60')" class="bg-blue-800 p-4 rounded-xl font-bold">310 - 60°C</button>
+                <button onclick="startSupervivencia('310','75')" class="bg-blue-700 p-4 rounded-xl font-bold">310 - 75°C</button>
+                <button onclick="startSupervivencia('310','90')" class="bg-blue-600 p-4 rounded-xl font-bold">310 - 90°C</button>
+                <button onclick="startSupervivencia('250','Tierra')" class="bg-indigo-700 p-4 rounded-xl font-bold">Tabla 250</button>
+            </div>
         </div>
-        <div id="res-calibre" class="mt-4 text-center font-bold text-xl text-emerald-400"></div>
+
+        <main id="game-container" class="hidden bg-slate-900/40 p-6 rounded-2xl border border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h1 id="game-title" class="font-bold text-slate-200">--</h1>
+                <button onclick="backToMenu()" class="bg-slate-800 py-2 px-4 rounded-lg text-xs font-bold">⬅️ Volver</button>
+            </div>
+            <div id="target-value" class="text-5xl font-black text-blue-500 text-center my-4">--</div>
+            <div id="matrix-container" class="grid grid-cols-3 sm:grid-cols-6 gap-2"></div>
+            <div id="fast-feedback" class="hidden mt-4 p-3 rounded-xl text-center font-bold"></div>
+        </main>
+
+        <hr class="border-slate-800 my-10">
+
+        <!-- SECCION CALCULADORAS -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                <h2 class="text-xl font-bold mb-4 text-blue-400">🧮 Calibre Mínimo</h2>
+                <input id="in-amp" type="number" placeholder="Amperes" class="w-full bg-slate-900 p-3 rounded-lg mb-2">
+                <select id="in-temp" class="w-full bg-slate-900 p-3 rounded-lg mb-2">
+                    <option value="60">60°C</option><option value="75">75°C</option><option value="90">90°C</option>
+                </select>
+                <button onclick="calcCalibre()" class="w-full bg-blue-600 p-3 rounded-lg font-bold">Calcular</button>
+                <div id="res-cal" class="mt-4 text-center font-bold text-xl text-emerald-400"></div>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                <h2 class="text-xl font-bold mb-4 text-orange-400">⚡ Siemens Ajuste</h2>
+                <input id="in-carga" type="number" placeholder="Carga (A)" class="w-full bg-slate-900 p-3 rounded-lg mb-2">
+                <input id="in-max" type="number" placeholder="In Sensor (A)" class="w-full bg-slate-900 p-3 rounded-lg mb-2">
+                <button onclick="calcSiemens()" class="w-full bg-orange-600 p-3 rounded-lg font-bold">Calcular</button>
+                <div id="res-siemens" class="mt-4 text-center font-bold"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Siemens Selector -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-        <h2 class="text-xl font-bold mb-4 text-orange-400">⚡ Siemens: Selector</h2>
-        <div class="flex flex-col gap-3">
-            <input id="in-carga" type="number" placeholder="Carga (A)" class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-white">
-            <input id="in-max" type="number" placeholder="In Sensor (A)" class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-white">
-            <button onclick="calcularSiemens()" class="bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-bold">Calcular Ajuste</button>
-        </div>
-        <div id="res-siemens" class="mt-4 text-center font-bold text-lg"></div>
-    </div>
-</div>
+    <script>
+        const data310 = [{c:"14 AWG", "60":15, "75":20, "90":25}, {c:"12 AWG", "60":20, "75":25, "90":30}, {c:"10 AWG", "60":30, "75":35, "90":40}, {c:"8 AWG", "60":40, "75":50, "90":55}, {c:"6 AWG", "60":55, "75":65, "90":75}, {c:"4 AWG", "60":70, "75":85, "90":95}, {c:"3 AWG", "60":85, "75":100, "90":110}, {c:"2 AWG", "60":95, "75":115, "90":130}, {c:"1 AWG", "60":110, "75":130, "90":145}, {c:"1/0 AWG", "60":125, "75":150, "90":170}, {c:"2/0 AWG", "60":145, "75":175, "90":195}, {c:"3/0 AWG", "60":165, "75":200, "90":225}, {c:"4/0 AWG", "60":195, "75":230, "90":260}, {c:"250 kcmil", "60":215, "75":255, "90":290}, {c:"500 kcmil", "60":320, "75":380, "90":430}];
+        const data250 = [{c:"14 AWG", v:15}, {c:"12 AWG", v:20}, {c:"10 AWG", v:60}, {c:"8 AWG", v:100}, {c:"6 AWG", v:200}, {c:"4 AWG", v:300}, {c:"3 AWG", v:400}, {c:"2 AWG", v:500}, {c:"1 AWG", v:600}, {c:"1/0 AWG", v:800}, {c:"2/0 AWG", v:1000}, {c:"3/0 AWG", v:1200}, {c:"4/0 AWG", v:1600}, {c:"250 kcmil", v:2000}, {c:"500 kcmil", v:6000}];
+        let mode, temp, currentObj, lock = false;
+
+        function startSupervivencia(m,t){ mode=m; temp=t; document.getElementById("menu-container").classList.add("hidden"); document.getElementById("game-container").classList.remove("hidden"); renderButtons(); generar(); }
+        function backToMenu(){ document.getElementById("game-container").classList.add("hidden"); document.getElementById("menu-container").classList.remove("hidden"); }
+        function renderButtons(){
+            const cont = document.getElementById("matrix-container"); cont.innerHTML = "";
+            (mode==="310"?data310:data250).forEach(i => {
+                const b = document.createElement("button"); b.className = "bg-slate-800 p-3 rounded-lg text-[10px] font-bold"; b.innerText = i.c; b.onclick = () => check(i.c); cont.appendChild(b);
+            });
+        }
+        function generar(){
+            lock = false; document.getElementById("fast-feedback").classList.add("hidden");
+            const list = mode==="310"?data310:data250; currentObj = list[Math.floor(Math.random()*list.length)];
+            document.getElementById("target-value").innerText = (mode==="310"?currentObj[temp]:currentObj.v) + " A";
+        }
+        function check(sel){
+            if(lock) return;
+            const targetVal = mode==="310"?currentObj[temp]:currentObj.v;
+            const selVal = mode==="310"?data310.find(i=>i.c===sel)[temp]:data250.find(i=>i.c===sel).v;
+            const fb = document.getElementById("fast-feedback"); fb.classList.remove("hidden");
+            if(selVal >= targetVal){ fb.className="mt-4 p-3 bg-green-950/40 text-green-300 font-bold rounded-xl"; fb.innerHTML="✅ Correcto"; setTimeout(generar, 800); }
+            else{ lock=true; fb.className="mt-4 p-3 bg-rose-950/40 text-rose-200 font-bold rounded-xl"; fb.innerHTML="❌ Error"; setTimeout(generar, 2000); }
+        }
+        function calcCalibre(){ const amp=parseInt(document.getElementById("in-amp").value); const t=document.getElementById("in-temp").value; const f=data310.find(i=>i[t]>=amp); document.getElementById("res-cal").innerText = f ? "Calibre: "+f.c : "Excede tabla"; }
+        function calcSiemens(){
+            const c=parseFloat(document.getElementById("in-carga").value), m=parseFloat(document.getElementById("in-max").value), o=document.getElementById("res-siemens");
+            if(!c || !m) return o.innerHTML="<span class='text-red-400'>❌ Valores inválidos</span>";
+            const a = c*1.25;
+            o.innerHTML = a>m ? "<div class='bg-red-950/40 p-4 rounded-xl text-red-400'>⚠️ Insuficiente. Req: "+a.toFixed(0)+" A</div>" : "<div class='bg-orange-950/40 p-4 rounded-xl text-orange-300 text-3xl font-black'>✅ "+a.toFixed(0)+" A</div>";
+        }
+    </script>
+</body>
+</html>
